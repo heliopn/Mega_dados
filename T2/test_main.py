@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 from main import app
 
 client = TestClient(app)
-uuid_  = ""
 
 #---Testes Unitários---#
 def test_read_main_returns_not_found():
