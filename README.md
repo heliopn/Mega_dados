@@ -1,1 +1,5 @@
-# Mega_dados
+# Mega Dados
+
+Hélio Paiva
+
+Pedro Daher
