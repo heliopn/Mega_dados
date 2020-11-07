@@ -6,6 +6,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from ..database import DBSession, get_db
 from ..models import User
 
+import uuid
+
 router = APIRouter()
 
 
@@ -13,7 +15,7 @@ router = APIRouter()
     '',
     summary='Reads user list',
     description='Reads the whole user list.',
-    response_model=Dict[str, User],
+    response_model=Dict[uuid.UUID, User],
 )
 async def read_users(db: DBSession = Depends(get_db)):
     return db.read_users()
@@ -23,21 +25,21 @@ async def read_users(db: DBSession = Depends(get_db)):
     '',
     summary='Creates a new user',
     description='Creates a new user.',
-    response_model=str,
+    response_model=uuid.UUID,
 )
 async def create_user(item: User, db: DBSession = Depends(get_db)):
     return db.create_user(item)
 
 
 @router.get(
-    '/{username_}',
+    '/{uuid_}',
     summary='Reads user',
-    description='Reads user from username.',
+    description='Reads a user identified by its id',
     response_model=User,
 )
-async def read_user(username_: str, db: DBSession = Depends(get_db)):
+async def read_user(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
     try:
-        return db.read_user(username_)
+        return db.read_user(uuid_)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -46,17 +48,17 @@ async def read_user(username_: str, db: DBSession = Depends(get_db)):
 
 
 @router.put(
-    '/{username_}',
+    '/{uuid_}',
     summary='Replaces a user',
-    description='Replaces a user identified by its username.',
+    description='Replaces a user identified by its id',
 )
 async def replace_username(
-        username_: str,
+        uuid_: uuid.UUID,
         item: User,
         db: DBSession = Depends(get_db),
 ):
     try:
-        db.replace_user(username_, item)
+        db.replace_user(uuid_, item)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -65,20 +67,20 @@ async def replace_username(
 
 
 @router.patch(
-    '/{username_}',
+    '/{uuid_}',
     summary='Alters user',
-    description='Alters a user identified by its username',
+    description='Alters a user identified by its id',
 )
 async def alter_user(
-        username_: str,
+        uuid_: uuid.UUID,
         item: User,
         db: DBSession = Depends(get_db),
 ):
     try:
-        old_item = db.read_user(username_)
+        old_item = db.read_user(uuid_)
         update_data = item.dict(exclude_unset=True)
         new_item = old_item.copy(update=update_data)
-        db.replace_user(username_, new_item)
+        db.replace_user(uuid_, new_item)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,
@@ -87,13 +89,13 @@ async def alter_user(
 
 
 @router.delete(
-    '/{username_}',
+    '/{uuid_}',
     summary='Deletes user',
-    description='Deletes a user identified by its username',
+    description='Deletes a user identified by its id',
 )
-async def remove_user(username_: str, db: DBSession = Depends(get_db)):
+async def remove_user(uuid_: uuid.UUID, db: DBSession = Depends(get_db)):
     try:
-        db.remove_user(username_)
+        db.remove_user(uuid_)
     except KeyError as exception:
         raise HTTPException(
             status_code=404,

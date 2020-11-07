@@ -9,8 +9,7 @@ from tasklist.main import app
 
 client = TestClient(app)
 
-app.dependency_overrides[utils.get_config_filename] = \
-    utils.get_config_test_filename
+app.dependency_overrides[utils.get_config_filename] = utils.get_config_test_filename
 
 
 def setup_database():
@@ -38,53 +37,73 @@ def test_read_tasks_with_no_task():
     assert response.status_code == 200
     assert response.json() == {}
 
+def test_create_user():
+    user = {'username': 'Ozob'}
+    response = client.post('/user', json=user)
+    assert response.status_code == 200
+    owner = response.json()
+    return owner
+
 
 def test_create_and_read_some_tasks():
     setup_database()
+    task_owner = test_create_user()
+
     tasks = [
         {
-            "description": "foo",
-            "completed": False
+            'description': 'foo',
+            'completed': False,
+            'task_owner': task_owner
         },
         {
-            "description": "bar",
-            "completed": True
+            'description': 'bar',
+            'completed': True,
+            'task_owner': task_owner
         },
         {
-            "description": "baz"
+            'description': 'baz',
+            'task_owner': task_owner
         },
         {
-            "completed": True
+            'completed': True,
+            'task_owner': task_owner
         },
-        {},
+        {
+            'task_owner': task_owner
+        },
     ]
     expected_responses = [
         {
             'description': 'foo',
-            'completed': False
+            'completed': False, 
+            'task_owner': task_owner
         },
         {
             'description': 'bar',
-            'completed': True
+            'completed': True, 
+            'task_owner': task_owner
         },
         {
             'description': 'baz',
-            'completed': False
+            'completed': False, 
+            'task_owner': task_owner
         },
         {
             'description': 'no description',
-            'completed': True
+            'completed': True, 
+            'task_owner': task_owner
         },
         {
             'description': 'no description',
-            'completed': False
+            'completed': False, 
+            'task_owner': task_owner
         },
     ]
 
     # Insert some tasks and check that all succeeded.
     uuids = []
     for task in tasks:
-        response = client.post("/task", json=task)
+        response = client.post('/task', json=task)
         assert response.status_code == 200
         uuids.append(response.json())
 
@@ -119,15 +138,16 @@ def test_create_and_read_some_tasks():
 
 def test_substitute_task():
     setup_database()
+    task_owner = test_create_user()
 
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'task_owner': task_owner}
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
 
     # Replace the task.
-    new_task = {'description': 'bar', 'completed': True}
+    new_task = {'description': 'bar', 'completed': True, 'task_owner': task_owner}
     response = client.put(f'/task/{uuid_}', json=new_task)
     assert response.status_code == 200
 
@@ -143,9 +163,10 @@ def test_substitute_task():
 
 def test_alter_task():
     setup_database()
+    task_owner = test_create_user()
 
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'task_owner': task_owner}
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()
@@ -195,9 +216,10 @@ def test_delete_nonexistant_task():
 
 def test_delete_all_tasks():
     setup_database()
+    task_owner = test_create_user()
 
     # Create a task.
-    task = {'description': 'foo', 'completed': False}
+    task = {'description': 'foo', 'completed': False, 'task_owner': task_owner}
     response = client.post('/task', json=task)
     assert response.status_code == 200
     uuid_ = response.json()

@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
-    username NVARCHAR(20) PRIMARY KEY,
-    full_name NVARCHAR(50)
+    uuid BINARY(16) PRIMARY KEY,
+    username NVARCHAR(1060)
 );
